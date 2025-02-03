@@ -1,6 +1,7 @@
 package com.example.ordersystem.member.domain;
 
 import com.example.ordersystem.common.domain.BaseTimeEntity;
+import com.example.ordersystem.member.dtos.MemberResDto;
 import com.example.ordersystem.ordering.domain.Ordering;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,4 +32,8 @@ public class Member extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "member")
     private List<Ordering> orderingList;
+
+    public MemberResDto memberListResDtoFromEntity() {
+        return MemberResDto.builder().id(this.id).name(this.name).email(this.email).orderCount(this.orderingList.size()).build();
+    }
 }
