@@ -36,7 +36,7 @@ public class SecurityConfig {
 //                token을 검증하고, token을 통해 Authentication객체 생성
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class) //Username... -> Authentication객체가 있는지 검사하는 클래스
 //                .authenticated() : 모든 요청에 대해 Authentication 객체가 생성되기를 요구
-                .authorizeHttpRequests(a -> a.requestMatchers("/member/create","/member/doLogin").permitAll().anyRequest().authenticated())
+                .authorizeHttpRequests(a -> a.requestMatchers("/member/create","/member/doLogin","member/refresh-token").permitAll().anyRequest().authenticated())
                 .build();
     }
 
