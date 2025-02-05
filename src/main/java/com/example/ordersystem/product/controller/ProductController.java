@@ -3,7 +3,10 @@ package com.example.ordersystem.product.controller;
 import com.example.ordersystem.product.domain.Product;
 import com.example.ordersystem.product.dtos.ProductRegisterDto;
 import com.example.ordersystem.product.dtos.ProductResDto;
+import com.example.ordersystem.product.dtos.ProductSerchDto;
 import com.example.ordersystem.product.service.ProductService;
+import lombok.Getter;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -25,9 +28,15 @@ public class ProductController {
 
     @PostMapping("/create")
     @PreAuthorize(("hasRole('ADMIN')"))
-    public ResponseEntity<?> productCreate(@RequestBody ProductRegisterDto dto) {
+    public ResponseEntity<?> productCreate(ProductRegisterDto dto) {
         Product product = productService.productCreate(dto);
         return new ResponseEntity<>(product.getId(), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> productList(Pageable pageable, ProductSerchDto dto) {
+        Page<ProductResDto> productResDtos = productService.findAll(pageable, dto);
+        return new ResponseEntity<>(productResDtos, HttpStatus.OK);
     }
 
 }

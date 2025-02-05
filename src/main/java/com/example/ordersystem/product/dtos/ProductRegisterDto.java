@@ -17,10 +17,10 @@ public class ProductRegisterDto {
     private Integer stockQuantity;
     private MultipartFile productImage;
 
-    public Product toEntity(Member member, String imagePath) {
+    public Product toEntity(Member member) {
         return Product.builder().name(this.name).category(this.category)
                 .price(this.price).stockQuantity(this.stockQuantity)
-                .member(member).imagePath(imagePath)
+                .member(member)
                 .build();
     }
 }

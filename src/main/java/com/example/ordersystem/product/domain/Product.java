@@ -28,4 +28,8 @@ public class Product extends BaseTimeEntity {
     public ProductResDto fromEntity() {
         return ProductResDto.builder().id(this.id).name(this.name).category(this.category).stockQuantity(this.stockQuantity).imagePath(this.imagePath).build();
     }
+
+    public void updateImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
 }
