@@ -6,6 +6,8 @@ import com.example.ordersystem.member.dtos.MemberResDto;
 import com.example.ordersystem.member.dtos.MemberSaveReqDto;
 import com.example.ordersystem.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,12 @@ public class MemberService {
         return memberRepository.findAll().stream().map(m->m.memberListResDtoFromEntity()).toList();
     }
 
+    public MemberResDto myinfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Member member = memberRepository.findByEmail(authentication.getName()).orElseThrow(()->new EntityNotFoundException("없는 아이디입니다."));
+        return member.memberListResDtoFromEntity();
+    }
+
     public Member login(LoginDto dto){
         boolean check = true;
 //        email존재여부
@@ -53,4 +61,6 @@ public class MemberService {
         }
         return optionalMember.get();
     }
+
+
 }

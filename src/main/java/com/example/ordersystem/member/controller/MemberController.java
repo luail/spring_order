@@ -51,14 +51,20 @@ public class MemberController {
     }
 
     @GetMapping("/list")
-//    @PreAuthorize("hasRole('ADMIN')")  //가장 편한 방법
+    @PreAuthorize("hasRole('ADMIN')")  //가장 편한 방법, ROLE_ 붙일필요 없음. 예외는 filter레벨에서 발생한다.
     public ResponseEntity<?> list() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
-            throw new AccessDeniedException("권한없음");
-        }
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (!authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+//            throw new AccessDeniedException("권한없음");
+//        }
         List<MemberResDto> memberListResDto = memberService.findMemberList();
         return new ResponseEntity<>(memberListResDto,HttpStatus.OK);
+    }
+
+    @GetMapping("/myinfo")
+    public ResponseEntity<?> myinfo() {
+        MemberResDto memberResDto = memberService.myinfo();
+        return new ResponseEntity<>(memberResDto, HttpStatus.OK);
     }
 
     @PostMapping("/doLogin")
@@ -98,4 +104,6 @@ public class MemberController {
         loginInfo.put("token", token);
         return new ResponseEntity<>(loginInfo, HttpStatus.OK);
     }
+
+
 }
