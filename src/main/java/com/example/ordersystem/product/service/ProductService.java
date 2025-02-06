@@ -8,8 +8,14 @@ import com.example.ordersystem.product.dtos.ProductResDto;
 import com.example.ordersystem.product.dtos.ProductSerchDto;
 import com.example.ordersystem.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,12 +25,12 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.awt.print.Pageable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -78,5 +84,27 @@ public class ProductService {
     public Page<ProductResDto> findAll(Pageable pageable, ProductSerchDto serchDto) {
 //        검색을 위해 Specification 객체 사용
 //        Specification객체는 복잡한 쿼리를 명세를 이용하여 정의하는 방식으로, 쿼리를 쉽게 생성.
+        Specification<Product> specification = new Specification<Product>() {
+            @Override
+            public Predicate toPredicate(Root<Product> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+//                root : 엔티티의 속성을 접근하기 위한 객체, criteriaBuilder : 쿼리를 생성하기 위한 객체
+                List<Predicate> predicates = new ArrayList<>();
+                if (serchDto.getCategory() != null) {
+                    predicates.add(criteriaBuilder.equal(root.get("category"), serchDto.getCategory()));
+                }
+                if (serchDto.getProductName() != null) {
+                    predicates.add(criteriaBuilder.like(root.get("name"), "%"+serchDto.getProductName()+"%"));
+                }
+                Predicate[] predicatesArr = new Predicate[predicates.size()];
+                for (int i = 0; i < predicates.size(); i++) {
+                    predicatesArr[i] = predicates.get(i);
+                }
+                Predicate predicate = criteriaBuilder.and(predicatesArr);
+                return predicate;
+            }
+        };
+
+       Page<Product> productList = productRepository.findAll(specification, pageable);
+       return productList.map(p->p.fromEntity());
     }
 }

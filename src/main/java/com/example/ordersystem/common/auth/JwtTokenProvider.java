@@ -16,6 +16,7 @@ public class JwtTokenProvider {
 //    yml에 있는 jwt.expiration의 값을 가져옴.
     @Value("${jwt.expiration}")
     private int expriration;
+
     @Value("${jwt.secretKey}")
     private String secretKey;
 
