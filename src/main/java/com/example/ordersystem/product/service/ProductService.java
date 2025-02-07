@@ -1,5 +1,6 @@
 package com.example.ordersystem.product.service;
 
+import com.example.ordersystem.common.service.StockInventoryService;
 import com.example.ordersystem.member.domain.Member;
 import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.product.domain.Product;
@@ -42,10 +43,13 @@ public class ProductService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-    public ProductService(ProductRepository productRepository, MemberRepository memberRepository, S3Client s3Client) {
+    private final StockInventoryService stockInventoryService;
+
+    public ProductService(ProductRepository productRepository, MemberRepository memberRepository, S3Client s3Client, StockInventoryService stockInventoryService) {
         this.productRepository = productRepository;
         this.memberRepository = memberRepository;
         this.s3Client = s3Client;
+        this.stockInventoryService = stockInventoryService;
     }
 
     public Product productCreate(ProductRegisterDto dto) {
@@ -55,6 +59,8 @@ public class ProductService {
             Member member = memberRepository.findByEmail(authentication.getName()).orElseThrow(()->new EntityNotFoundException("member is not found"));
 
             Product product = productRepository.save(dto.toEntity(member));
+//            redis 재고에 추가
+            stockInventoryService.increseStock(product.getId(), dto.getStockQuantity());
 
 //        aws에 image 저장 후에 url추출
 //        aws의 s3접근가능한 iam계정생성, iam계정을 통해 aws에 접근가능한 접근객체 생성
@@ -76,6 +82,7 @@ public class ProductService {
             product.updateImagePath(s3Url);
             return product;
         } catch (IOException e) {
+//            redis는 트랜잭션의 대상이 아니므로, 에러시 별도의 decrease작업이 필요함.
             throw new RuntimeException("이미지 저장 실패");
         }
 

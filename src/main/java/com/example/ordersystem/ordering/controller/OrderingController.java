@@ -32,4 +32,18 @@ public class OrderingController {
         List<OrderListResDto> orderLists = orderingService.findAll();
         return new ResponseEntity<>(orderLists, HttpStatus.OK);
     }
+
+    @GetMapping("/myorders")
+    public ResponseEntity<?> myorders() {
+        List<OrderListResDto> orderListResDtos = orderingService.myOrders();
+        return new ResponseEntity<>(orderListResDtos, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> orderCancel(@PathVariable Long id) {
+        Ordering ordering = orderingService.orderCancel(id);
+        return new ResponseEntity<>(ordering.getId(),HttpStatus.OK);
+    }
+
 }

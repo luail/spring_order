@@ -26,7 +26,7 @@ public class Product extends BaseTimeEntity {
     private Member member;
 
     public ProductResDto fromEntity() {
-        return ProductResDto.builder().id(this.id).name(this.name).category(this.category).stockQuantity(this.stockQuantity).imagePath(this.imagePath).build();
+        return ProductResDto.builder().id(this.id).price(this.price).name(this.name).category(this.category).stockQuantity(this.stockQuantity).imagePath(this.imagePath).build();
     }
 
     public void updateImagePath(String imagePath) {
@@ -35,5 +35,9 @@ public class Product extends BaseTimeEntity {
 
     public void updateStockQuantity(int quantity) {
         this.stockQuantity -= quantity;
+    }
+
+    public void orderCancel(Integer quantity) {
+        this.stockQuantity += quantity;
     }
 }
