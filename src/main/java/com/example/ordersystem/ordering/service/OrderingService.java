@@ -1,5 +1,8 @@
 package com.example.ordersystem.ordering.service;
 
+import com.example.ordersystem.common.dtos.StockRabbitDto;
+import com.example.ordersystem.common.service.StockInventoryService;
+import com.example.ordersystem.common.service.StockRabbitmqService;
 import com.example.ordersystem.member.domain.Member;
 import com.example.ordersystem.member.repository.MemberRepository;
 import com.example.ordersystem.ordering.domain.OrderDetail;
@@ -27,12 +30,16 @@ public class OrderingService {
     private final MemberRepository memberRepository;
     private final OrderingDetailRepository orderingDetailRepository;
     private final ProductRepository productRepository;
+    private final StockInventoryService stockInventoryService;
+    private final StockRabbitmqService stockRabbitmqService;
 
-    public OrderingService(OrderingRepository orderingRepository, MemberRepository memberRepository, OrderingDetailRepository orderingDetailRepository, ProductRepository productRepository) {
+    public OrderingService(OrderingRepository orderingRepository, MemberRepository memberRepository, OrderingDetailRepository orderingDetailRepository, ProductRepository productRepository, StockInventoryService stockInventoryService, StockRabbitmqService stockRabbitmqService) {
         this.orderingRepository = orderingRepository;
         this.memberRepository = memberRepository;
         this.orderingDetailRepository = orderingDetailRepository;
         this.productRepository = productRepository;
+        this.stockInventoryService = stockInventoryService;
+        this.stockRabbitmqService = stockRabbitmqService;
     }
 
     public Ordering orderCreate(List<OrderCreateDto> dtos) {
@@ -69,7 +76,7 @@ public class OrderingService {
         for (OrderCreateDto o : dtos) {
             Product product = productRepository.findById(o.getProductId()).orElseThrow(()->new EntityNotFoundException("product is not found"));
             int quantity = o.getProductCount();
-//            동시성 이슈 고려 안한 코드.
+////            동시성 이슈 고려 안한 코드.
 //            if (product.getStockQuantity() < quantity) {
 //                throw new IllegalArgumentException("재고부족");
 //            } else {
@@ -79,8 +86,13 @@ public class OrderingService {
 
 //            동시성이슈를 고려한 코드
 //            redis를 통한 재고관리 및 재고잔량 확인
-
+            int newQuantity = stockInventoryService.decreaseStock(product.getId(), quantity);
+            if (newQuantity < 0) {
+                throw new IllegalArgumentException("재고부족");
+            }
 //            rdb동기화(rabbitmq)
+            StockRabbitDto stockRabbitDto = StockRabbitDto.builder().productId(product.getId()).productCount(quantity).build();;
+            stockRabbitmqService.puslish(stockRabbitDto);
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .ordering(ordering)

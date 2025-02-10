@@ -31,9 +31,10 @@ public class RedisConfig {
         return new LettuceConnectionFactory(configuration);
     }
 //    redis에 저장할 key, value의 타입지정한 template객체 생성
+//    redisTemplate라는 메서드가 config 전체에 1개는 있어야함.
     @Bean
     @Qualifier("rtdb")
-    public RedisTemplate<String, Object> redisRtTemplate(@Qualifier("rtdb") RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(@Qualifier("rtdb") RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new StringRedisSerializer());

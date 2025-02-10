@@ -15,12 +15,19 @@ public class StockInventoryService {
 
 //    상품등록, 주문취소시 increaseStock
     public int increseStock(Long productId, int quantity) {
-        Long remains = redisTemplate.opsForValue().increment(String.valueOf(productId), quantity);
-        return remains.intValue();
+        String remainsObject = redisTemplate.opsForValue().get(String.valueOf(productId));
+        if (remainsObject != null) {
+            int remains = Integer.parseInt(remainsObject);
+            if (remains < 0) {
+                redisTemplate.opsForValue().set(String.valueOf(productId), "0");
+            }
+        }
+        Long newRemains = redisTemplate.opsForValue().increment(String.valueOf(productId), quantity);
+        return newRemains.intValue();
     }
 
 //    주문시 decreaseStock
-    public int decreaseStock(Long productId, Integer quantity) {
+    public int decreaseStock(Long productId, int quantity) {
 //        먼저 조회 후에 재고감소가 가능할 때 decrease
         String remainsObject = redisTemplate.opsForValue().get(String.valueOf(productId));
         int remains = Integer.parseInt(remainsObject);
