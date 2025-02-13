@@ -76,23 +76,23 @@ public class OrderingService {
         for (OrderCreateDto o : dtos) {
             Product product = productRepository.findById(o.getProductId()).orElseThrow(()->new EntityNotFoundException("product is not found"));
             int quantity = o.getProductCount();
-////            동시성 이슈 고려 안한 코드.
-//            if (product.getStockQuantity() < quantity) {
-//                throw new IllegalArgumentException("재고부족");
-//            } else {
-////                재고감소 로직.
-//                product.updateStockQuantity(o.getProductCount());
-//            }
-
-//            동시성이슈를 고려한 코드
-//            redis를 통한 재고관리 및 재고잔량 확인
-            int newQuantity = stockInventoryService.decreaseStock(product.getId(), quantity);
-            if (newQuantity < 0) {
+//            동시성 이슈 고려 안한 코드.
+            if (product.getStockQuantity() < quantity) {
                 throw new IllegalArgumentException("재고부족");
+            } else {
+//                재고감소 로직.
+                product.updateStockQuantity(o.getProductCount());
             }
-//            rdb동기화(rabbitmq)
-            StockRabbitDto stockRabbitDto = StockRabbitDto.builder().productId(product.getId()).productCount(quantity).build();;
-            stockRabbitmqService.puslish(stockRabbitDto);
+
+////            동시성이슈를 고려한 코드
+////            redis를 통한 재고관리 및 재고잔량 확인
+//            int newQuantity = stockInventoryService.decreaseStock(product.getId(), quantity);
+//            if (newQuantity < 0) {
+//                throw new IllegalArgumentException("재고부족");
+//            }
+////            rdb동기화(rabbitmq)
+//            StockRabbitDto stockRabbitDto = StockRabbitDto.builder().productId(product.getId()).productCount(quantity).build();;
+//            stockRabbitmqService.puslish(stockRabbitDto);
 
             OrderDetail orderDetail = OrderDetail.builder()
                     .ordering(ordering)
