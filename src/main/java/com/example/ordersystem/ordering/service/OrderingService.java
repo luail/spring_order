@@ -5,6 +5,7 @@ import com.example.ordersystem.common.service.StockInventoryService;
 import com.example.ordersystem.common.service.StockRabbitmqService;
 import com.example.ordersystem.member.domain.Member;
 import com.example.ordersystem.member.repository.MemberRepository;
+import com.example.ordersystem.ordering.controller.SseController;
 import com.example.ordersystem.ordering.domain.OrderDetail;
 import com.example.ordersystem.ordering.domain.Ordering;
 import com.example.ordersystem.ordering.dtos.OrderCreateDto;
@@ -32,14 +33,16 @@ public class OrderingService {
     private final ProductRepository productRepository;
     private final StockInventoryService stockInventoryService;
     private final StockRabbitmqService stockRabbitmqService;
+    private final SseController sseController;
 
-    public OrderingService(OrderingRepository orderingRepository, MemberRepository memberRepository, OrderingDetailRepository orderingDetailRepository, ProductRepository productRepository, StockInventoryService stockInventoryService, StockRabbitmqService stockRabbitmqService) {
+    public OrderingService(OrderingRepository orderingRepository, MemberRepository memberRepository, OrderingDetailRepository orderingDetailRepository, ProductRepository productRepository, StockInventoryService stockInventoryService, StockRabbitmqService stockRabbitmqService, SseController sseController) {
         this.orderingRepository = orderingRepository;
         this.memberRepository = memberRepository;
         this.orderingDetailRepository = orderingDetailRepository;
         this.productRepository = productRepository;
         this.stockInventoryService = stockInventoryService;
         this.stockRabbitmqService = stockRabbitmqService;
+        this.sseController = sseController;
     }
 
     public Ordering orderCreate(List<OrderCreateDto> dtos) {
@@ -101,7 +104,12 @@ public class OrderingService {
                     .build();
             ordering.getOrderDetails().add(orderDetail);
         }
-        orderingRepository.save(ordering);
+        Ordering ordering1 = orderingRepository.save(ordering);
+
+//          sse를 통한 admin계정에 메시지 발송
+
+        sseController.publishMessage(ordering1.fromEntity(), "admin@naver.com");
+
         return ordering;
     }
 
